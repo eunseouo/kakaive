@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Document</title>
+  <link rel="stylesheet" href="./mapPage.css" />
+</head>
+<body>
+  <div id="Header">
+    <h1>까까이브</h1>
+    <p>맛도리 간식데이터를 모으다.</p>
+    <img class="menuBarImg" src="/img/menuBar.png" alt="메뉴바 이미지">
+  </div>
+  <div class="mapContainer">
+    <input type="text" id="searchPlaceBar" placeholder="검색하실 지역을 입력해주세요.">
+    <button id="searchPlaceBtn">검색</button>
+    <div id="map" style="width: 100%; height: 100%"></div>
+  </div>
+
+  <div class="menuBarContainer"></div>
+  <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=59e6519f2df1ad8c7ca1da77c30c04f9&libraries=services"></script>
+  <script src="./mapPage.js"></script>
+</body>
+</html>
