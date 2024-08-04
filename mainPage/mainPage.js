@@ -8,6 +8,8 @@ document.addEventListener("DOMContentLoaded", function () {
   var map = new kakao.maps.Map(mapContainer, mapOption);
   var ps = new kakao.maps.services.Places();
   var infowindow = new kakao.maps.InfoWindow({ zIndex: 1 });
+  // map.addControl(mapTypeControl, kakao.maps.ControlPosition.TOPRIGHT);
+
 
   // 마커와 인포윈도우를 관리할 배열
   var markers = [];
@@ -113,7 +115,7 @@ document.addEventListener("DOMContentLoaded", function () {
       "</div>" +
       '<div class="info-row textarea-row">' +
       "<label>설명:</label>" +
-      '<textarea id="description" style="width:200px;height:100px;"></textarea>' +
+      '<textarea id="description" style="width:200px;height:50px;"></textarea>' +
       "</div>" +
       '<button class="saveBtn" onclick="saveContent(\'' +
       markerId +
@@ -125,25 +127,47 @@ document.addEventListener("DOMContentLoaded", function () {
     infowindow.open(map, marker);
 
     kakao.maps.event.addListener(marker, "click", function clickMarker() {
+      // map.panTo(marker.getPosition()); // 마커 클릭 시 지도의 중심으로 부드럽게 이동
       var content = markerData[markerId];
       if (content) {
         var iwContent =
+          // '<div class="info-content2">' +
+          // "<p>카페명: " +
+          // content.name +
+          // "</p>" +
+          // "<p>먹은 것: " +
+          // content.snack +
+          // "</p>" +
+          // "<p>가격: " +
+          // content.price +
+          // "</p>" +
+          // "<p>별점: " +
+          // content.starGrade +
+          // "</p>" +
+          // "<p>설명: " +
+          // content.description +
+          // "</p>" +
           '<div class="info-content">' +
-          "<p>카페명: " +
+          '<div class="info-row">' +
+          "<p>카페명:</p>" +
           content.name +
-          "</p>" +
-          "<p>먹은 것: " +
-          content.snack +
-          "</p>" +
-          "<p>가격: " +
-          content.price +
-          "</p>" +
-          "<p>별점: " +
-          content.starGrade +
-          "</p>" +
-          "<p>설명: " +
-          content.description +
-          "</p>" +
+          "</div>"+
+          '<div class="info-row">' +
+          "<p>먹은 것:</p>" +
+          content.snack+
+          "</div>" +
+          '<div class="info-row">' +
+          "<p>가격:</p>" +
+          content.price+
+          "</div>" +
+          '<div class="info-row">' +
+          "<p>별점:</p>" +
+          content.starGrade+
+          "</div>" +
+          '<div class="info-row textarea-row">' +
+          "<p>설명:</p>" +
+          content.description+
+          "</div>" +
           '<button class="modifyBtn" onclick="editContent(\'' +
           markerId +
           "')\">수정</button>" +
@@ -220,7 +244,7 @@ document.addEventListener("DOMContentLoaded", function () {
       "</div>" +
       '<div class="info-row textarea-row">' +
       "<label>설명:</label>" +
-      '<textarea id="description" style="width:200px;height:100px;">' +
+      '<textarea id="description" style="width:200px;height:50px;">' +
       content.description +
       "</textarea>" +
       "</div>" +
@@ -273,19 +297,25 @@ menuBarImg.addEventListener("click", function () {
       <p class="menuItem p-userGuide">User Guide</p>
       <p class="menuItem p-letter">Letter</p>
       <p class="menuItem p-QNA">Q&A</p>
-      <p class="menuItem p-backBtn">돌아가기</p>
+      <button class="menuItem backBtn">돌아가기</button>
     </div>
   `;
-
-  menuBar.innerHTML = menuItemsContainer;
+  menuItemsContainer.innerHTML = `<p>Search Memo</p>`
+  menuBar.innerHTML = menuItemsContainer;   //직접 하나하나 넣기
 
   menuBarContainer.appendChild(menuBar);
 
   // 메뉴바를 표시
-  menuBarContainer.style.display = "block";
+  // menuBarContainer.style.display = "block";
 
-  // 돌아아기 클릭시 메뉴바 들어감
-  document.querySelector(".p-backBtn").addEventListener("click", function () {
-    menuBarContainer.style.display = "none";
+  // 돌아가기 클릭시 메뉴바 들어감
+  menuBarImg.addEventListener("click", function () {
+    console.log(menuBar.style.display);
+      if (menuBar.style.display == "none") {
+        menuBar.style.display = "block";
+      } else {
+        menuBar.style.display = "none";
+      }
+    });
+
   });
-});
