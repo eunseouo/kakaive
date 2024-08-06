@@ -1,29 +1,78 @@
 document.addEventListener("DOMContentLoaded", function () {
-  var mapContainer = document.getElementById("map"),
+  var mapContainer2 = document.querySelector("#mapContainer2");
+  var mapContainer3 = document.querySelector("#mapContainer3");
+  var menuBar = document.querySelector("#menuBar");
+
+  var mapContainer = document.querySelector("#map"),
     mapOption = {
-      center: new kakao.maps.LatLng(33.450701, 126.570667),
+      center: new kakao.maps.LatLng(37.55811021038101, 126.925950050354),
       level: 3,
     };
 
   var map = new kakao.maps.Map(mapContainer, mapOption);
   var ps = new kakao.maps.services.Places();
   var infowindow = new kakao.maps.InfoWindow({ zIndex: 1 });
-  // map.addControl(mapTypeControl, kakao.maps.ControlPosition.TOPRIGHT);
 
-
-  // 마커와 인포윈도우를 관리할 배열
   var markers = [];
-  var markerData = {};
+  var markerData = JSON.parse(localStorage.getItem("markerData")) || {};
 
   // 마지막으로 생성된 마커 추적
   var lastMarker = null;
 
-  // // 고유 ID 생성기
+  // 고유 ID 생성기
   function generateUniqueId() {
     return "_" + Math.random().toString(36).substr(2, 9);
   }
 
-  // 키워드로 장소를 검색합니다
+
+
+  // @@마커 데이터 로드&추가
+  // 마커 데이터가 있으면 지도에 마커를 추가
+  Object.keys(markerData).forEach((markerId) => {
+    var data = markerData[markerId];
+    var markerPosition = new kakao.maps.LatLng(data.lat, data.lng);
+    var marker = new kakao.maps.Marker({
+      position: markerPosition,
+    });
+    marker.setMap(map);
+    markers.push({ id: markerId, marker: marker });
+
+    kakao.maps.event.addListener(marker, "click", function () {
+      var iwContent =
+        '<div class="info-content">' +
+        '<div class="info-row">' +
+        "<p>카페명:</p>" +
+        data.name +
+        "</div>" +
+        '<div class="info-row">' +
+        "<p>메뉴:</p>" +
+        data.snack +
+        "</div>" +
+        '<div class="info-row">' +
+        "<p>가격:</p>" +
+        data.price +
+        "</div>" +
+        '<div class="info-row">' +
+        "<p>별점:</p>" +
+        data.starGrade +
+        "</div>" +
+        '<div class="info-row textarea-row">' +
+        "<p>설명:</p>" +
+        data.description +
+        "</div>" +
+        '<button class="modifyBtn" onclick="editContent(\'' +
+        markerId +
+        "')\">수정</button>" +
+        '<button class="deleteBtn" onclick="deleteContent(\'' +
+        markerId +
+        "')\">삭제</button>" +
+        "</div>";
+      infowindow.setContent(iwContent);
+      infowindow.open(map, marker);
+    });
+  });
+
+  // @@장소 검색 기능
   function searchPlaces() {
     var keyword = document.getElementById("searchPlaceBar")?.value;
 
@@ -61,9 +110,10 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
-  // 지도를 클릭한 위치에 마커를 추가, 인포윈도우를 표시
+  // @@마커생성, 인포윈도우
+  // 마커 최초 생성
   kakao.maps.event.addListener(map, "click", function (mouseEvent) {
-    // 이전에 생성된 마커가 있고 아무 글자도 입력되지 않았으면 삭제
+    // 아무 글자도 입력되지 않았으면 삭제
     if (
       lastMarker &&
       !document.getElementById("name")?.value &&
@@ -102,7 +152,7 @@ document.addEventListener("DOMContentLoaded", function () {
       '<input id="name" type="text" style="width:200px;">' +
       "</div>" +
       '<div class="info-row">' +
-      "<label>먹은 것:</label>" +
+      "<label>메뉴:</label>" +
       '<input id="snack" type="text" style="width:200px;">' +
       "</div>" +
       '<div class="info-row">' +
@@ -111,7 +161,8 @@ document.addEventListener("DOMContentLoaded", function () {
       "</div>" +
       '<div class="info-row">' +
       "<label>별점:</label>" +
-      '<input id="starGrade" type="text" style="width:200px;">' +
+      '<div class="rating_box">' +
+      '<input id="price" type="text" style="width:200px;">' +
       "</div>" +
       '<div class="info-row textarea-row">' +
       "<label>설명:</label>" +
@@ -120,53 +171,37 @@ document.addEventListener("DOMContentLoaded", function () {
       '<button class="saveBtn" onclick="saveContent(\'' +
       markerId +
       "')\">저장</button>" +
-      '<button class="cancelBtn" onclick="cancelEdit()">취소</button>' +
       "</div>";
-
+      
     infowindow.setContent(iwContent);
     infowindow.open(map, marker);
 
+    // @@생성된 마커 클릭 시
     kakao.maps.event.addListener(marker, "click", function clickMarker() {
-      // map.panTo(marker.getPosition()); // 마커 클릭 시 지도의 중심으로 부드럽게 이동
+      map.panTo(marker.getPosition());
       var content = markerData[markerId];
       if (content) {
         var iwContent =
-          // '<div class="info-content2">' +
-          // "<p>카페명: " +
-          // content.name +
-          // "</p>" +
-          // "<p>먹은 것: " +
-          // content.snack +
-          // "</p>" +
-          // "<p>가격: " +
-          // content.price +
-          // "</p>" +
-          // "<p>별점: " +
-          // content.starGrade +
-          // "</p>" +
-          // "<p>설명: " +
-          // content.description +
-          // "</p>" +
           '<div class="info-content">' +
           '<div class="info-row">' +
           "<p>카페명:</p>" +
           content.name +
-          "</div>"+
+          "</div>" +
           '<div class="info-row">' +
-          "<p>먹은 것:</p>" +
-          content.snack+
+          "<p>메뉴:</p>" +
+          content.snack +
           "</div>" +
           '<div class="info-row">' +
           "<p>가격:</p>" +
-          content.price+
+          content.price +
           "</div>" +
           '<div class="info-row">' +
           "<p>별점:</p>" +
-          content.starGrade+
+          content.starGrade +
           "</div>" +
           '<div class="info-row textarea-row">' +
           "<p>설명:</p>" +
-          content.description+
+          content.description +
           "</div>" +
           '<button class="modifyBtn" onclick="editContent(\'' +
           markerId +
@@ -188,6 +223,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
+  // @@마커정보 저장&수정
   // 저장 버튼 클릭 시 인포윈도우 내용을 저장하는 함수
   window.saveContent = function (markerId) {
     var name = document.getElementById("name")?.value;
@@ -196,21 +232,69 @@ document.addEventListener("DOMContentLoaded", function () {
     var starGrade = document.getElementById("starGrade")?.value;
     var description = document.getElementById("description")?.value;
 
+    var latlng = markers
+      .find((marker) => marker.id === markerId)
+      .marker.getPosition();
+    var lat = latlng.getLat();
+    var lng = latlng.getLng();
+
     if (!name && !snack && !price && !starGrade && !description) {
+      // 정보가 없으면 마커 삭제
       var markerIndex = markers.findIndex((marker) => marker.id === markerId);
-      markers[markerIndex].marker.setMap(null); // 아무것도 입력하지 않으면 마커 삭제
-      markers.splice(markerIndex, 1); // 마커 배열에서 제거
-      delete markerData[markerId]; // 데이터 객체에서 제거
+      markers[markerIndex].marker.setMap(null);
+      markers.splice(markerIndex, 1);
+      delete markerData[markerId];
+      localStorage.setItem("markerData", JSON.stringify(markerData));
       infowindow.close();
       return;
     }
 
-    var data = { name, snack, price, starGrade, description };
+    var data = { name, snack, price, starGrade, description, lat, lng };
     markerData[markerId] = data;
+    localStorage.setItem("markerData", JSON.stringify(markerData)); // 로컬 스토리지에 저장
 
     alert("내용이 저장되었습니다.");
-    infowindow.close();
-    lastMarker = null; // 저장되면 lastMarker 초기화
+
+    // 인포윈도우 업데이트
+    var iwContent =
+      '<div class="info-content">' +
+      '<div class="info-row">' +
+      "<p>카페명:</p>" +
+      data.name +
+      "</div>" +
+      '<div class="info-row">' +
+      "<p>메뉴:</p>" +
+      data.snack +
+      "</div>" +
+      '<div class="info-row">' +
+      "<p>가격:</p>" +
+      data.price +
+      "</div>" +
+      '<div class="info-row">' +
+      "<p>별점:</p>" +
+      data.starGrade +
+      "</div>" +
+      '<div class="info-row textarea-row">' +
+      "<p>설명:</p>" +
+      data.description +
+      "</div>" +
+      '<button class="modifyBtn" onclick="editContent(\'' +
+      markerId +
+      "')\">수정</button>" +
+      '<button class="deleteBtn" onclick="deleteContent(\'' +
+      markerId +
+      "')\">삭제</button>" +
+      "</div>";
+    console.log(iwContent);
+    infowindow.setContent(iwContent);
+    infowindow.open(
+      map,
+      markers.find((marker) => marker.id === markerId).marker
+    );
+
+    lastMarker = null;
+    //새로고침(이대로 써도 될까....????)
+    location.href = location.href;
   };
 
   // 수정 버튼 클릭 시 textarea로 전환
@@ -225,7 +309,7 @@ document.addEventListener("DOMContentLoaded", function () {
       '">' +
       "</div>" +
       '<div class="info-row">' +
-      "<label>먹은 것:</label>" +
+      "<label>메뉴:</label>" +
       '<input id="snack" type="text" style="width:200px;" value="' +
       content.snack +
       '">' +
@@ -251,7 +335,6 @@ document.addEventListener("DOMContentLoaded", function () {
       '<button class="saveBtn" onclick="saveContent(\'' +
       markerId +
       "')\">저장</button>" +
-      '<button class="cancelBtn" onclick="cancelEdit()">취소</button>' +
       "</div>";
     infowindow.setContent(iwContent);
     infowindow.open(
@@ -260,6 +343,7 @@ document.addEventListener("DOMContentLoaded", function () {
     );
   };
 
+  // @@마커 삭제
   // 삭제 버튼 클릭 시 인포윈도우와 markerData 삭제
   window.deleteContent = function (markerId) {
     var confirmDelete = confirm(
@@ -270,6 +354,7 @@ document.addEventListener("DOMContentLoaded", function () {
       markers[markerIndex].marker.setMap(null); // 마커 제거
       markers.splice(markerIndex, 1); // 마커 배열에서 제거
       delete markerData[markerId]; // 데이터 객체에서 제거
+      localStorage.setItem("markerData", JSON.stringify(markerData)); // 로컬 스토리지에서 업데이트
       alert("내용이 삭제되었습니다.");
       infowindow.close();
     } else {
@@ -277,45 +362,138 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   };
 
-  // 취소 버튼 클릭시 인포윈도우 닫기
-  window.cancelEdit = function () {
-    infowindow.close();
-  };
-});
+  // @@메뉴바 기능
+  var menuBarImg = document.querySelector(".menuBarImg");
+  var menuBarContainer = document.querySelector(".menuBarContainer");
 
-var menuBarImg = document.querySelector(".menuBarImg");
-var menuBarContainer = document.querySelector(".menuBarContainer");
+  // 메뉴바 안보이게 보이게
+  function toggleMenu() {
+    const menuBar = document.getElementById("menuBar");
+    if (menuBar.style.display == "none") {
+      menuBar.style.display = "block";
+    } else {
+      menuBar.style.display = "none";
+    }
+  }
 
-menuBarImg.addEventListener("click", function () {
-  menuBarContainer.innerHTML = ""; // menuBarContainer 초기화
-  var menuBar = document.createElement("div");
-  menuBar.className = "menuBar";
+  // 메뉴바 클릭 이벤트
+  document.querySelector(".menuBarImg").addEventListener("click", toggleMenu);
 
-  var menuItemsContainer = `
-    <div class="menuItemsContainer">
-      <p class="menuItem p-searchMemo">Search Memo</p>
-      <p class="menuItem p-userGuide">User Guide</p>
-      <p class="menuItem p-letter">Letter</p>
-      <p class="menuItem p-QNA">Q&A</p>
-      <button class="menuItem backBtn">돌아가기</button>
-    </div>
-  `;
-  menuItemsContainer.innerHTML = `<p>Search Memo</p>`
-  menuBar.innerHTML = menuItemsContainer;   //직접 하나하나 넣기
+  // 검색 메모 버튼 클릭 이벤트
+  document
+    .querySelector(".p-searchMemo")
+    .addEventListener("click", openSearchPage);
+  document
+    .querySelector(".p-userGuide")
+    .addEventListener("click", openUserGuidePage);
 
-  menuBarContainer.appendChild(menuBar);
-
-  // 메뉴바를 표시
-  // menuBarContainer.style.display = "block";
-
-  // 돌아가기 클릭시 메뉴바 들어감
-  menuBarImg.addEventListener("click", function () {
-    console.log(menuBar.style.display);
-      if (menuBar.style.display == "none") {
-        menuBar.style.display = "block";
-      } else {
-        menuBar.style.display = "none";
-      }
-    });
-
+  // 돌아가기 버튼 클릭 이벤트
+  document.querySelector(".backBtn").addEventListener("click", function () {
+    location.href = location.href;
   });
+  document.querySelector("#backBtn2").addEventListener("click", function () {
+    location.href = location.href;
+  });
+
+  // 검색 메모 팝업 함수
+  function openSearchPage() {
+    let mapEl = document.querySelector(".mapEl");
+    mapContainer2.style.display = "block";
+    mapContainer3.style.display = "none";
+    mapEl.style.display = "none";
+    menuBar.style.display = "none";
+
+    const tbody = document.querySelector("#memoSearchTable tbody");
+    tbody.innerHTML = ""; // 기존 내용 지우기
+
+    Object.keys(markerData).forEach((markerId) => {
+      const data = markerData[markerId];
+      const newRow = tbody.insertRow();
+      const cafeCell = newRow.insertCell(0);
+      const snackCell = newRow.insertCell(1);
+      const priceCell = newRow.insertCell(2);
+      const scoreCell = newRow.insertCell(3);
+      const descriptionCell = newRow.insertCell(4);
+
+      cafeCell.innerHTML = data.name;
+      snackCell.innerHTML = data.snack;
+      priceCell.innerHTML = data.price;
+      scoreCell.innerHTML = data.starGrade;
+      descriptionCell.innerHTML = data.description;
+
+      document
+        .querySelector("#memoSearchBtn")
+        .addEventListener("click", memoSearching);
+
+      return { cafeCell, snackCell, priceCell, scoreCell, descriptionCell };
+    });
+  }
+
+  // 사용가이드 팝업 함수
+  function openUserGuidePage() {
+    let mapEl = document.querySelector(".mapEl");
+    mapContainer3.style.display = "block";
+    mapContainer2.style.display = "none";
+    mapEl.style.display = "none";
+    menuBar.style.display = "none";
+  }
+
+  //@@메모 검색
+  function memoSearching() {
+    const keyword = document
+      .querySelector("#memoSearchBar")
+      .value.toLowerCase();
+    const filteredData = Object.values(markerData).filter(
+      (item) =>
+        item.name.toLowerCase().includes(keyword) ||
+        item.snack.toLowerCase().includes(keyword) ||
+        item.starGrade.toLowerCase().includes(keyword) ||
+        item.description.toLowerCase().includes(keyword)
+    );
+
+    const tbody = document.querySelector("#memoSearchTable tbody");
+    tbody.innerHTML = ""; // 기존 내용 지우기
+
+    filteredData.forEach((item) => {
+      const newRow = tbody.insertRow();
+      const cafeCell = newRow.insertCell(0);
+      const snackCell = newRow.insertCell(1);
+      const priceCell = newRow.insertCell(2);
+      const scoreCell = newRow.insertCell(3);
+      const descriptionCell = newRow.insertCell(4);
+
+      cafeCell.innerHTML = highlightKeyword(item.name, keyword);
+      snackCell.innerHTML = highlightKeyword(item.snack, keyword);
+      priceCell.innerHTML = highlightKeyword(item.price, keyword);
+      scoreCell.innerHTML = highlightKeyword(item.starGrade, keyword);
+      descriptionCell.innerHTML = highlightKeyword(item.description, keyword);
+    });
+    document
+      .querySelector("#memoSearchOffBtn")
+      .addEventListener("click", openSearchPage);
+    keyword.value = "";
+  }
+
+  function highlightKeyword(text, keyword) {
+    const regex = new RegExp(`(${keyword})`, "gi");
+    return text.replace(regex, '<span class="highlight">$1</span>');
+  }
+
+  // @@마커 모두 삭제
+  document
+    .querySelector("#clearBtn")
+    .addEventListener("click", clearAllMarkers);
+
+  function clearAllMarkers() {
+    // 모든 마커 제거
+    markers.forEach(function (markerObj) {
+      markerObj.marker.setMap(null); // 마커를 지도에서 제거
+    });
+    // markers배열,markerData객체 비우기
+    markers.length = 0;
+    markerData = {};
+    // 로컬 스토리지에서 데이터 제거
+    localStorage.removeItem("markerData");
+    alert("모든 마커가 삭제되었습니다.");
+  }
+});
