@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", function () {
   var mapContainer2 = document.querySelector("#mapContainer2");
   var mapContainer3 = document.querySelector("#mapContainer3");
   var menuBar = document.querySelector("#menuBar");
+  var memoSearchBar = document.querySelector("#memoSearchBar");
 
   var mapContainer = document.querySelector("#map"),
     mapOption = {
@@ -15,6 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   var markers = [];
   var markerData = JSON.parse(localStorage.getItem("markerData")) || {};
+  var starGradeData = [];
 
   // 마지막으로 생성된 마커 추적
   var lastMarker = null;
@@ -23,8 +25,6 @@ document.addEventListener("DOMContentLoaded", function () {
   function generateUniqueId() {
     return "_" + Math.random().toString(36).substr(2, 9);
   }
-
-
 
   // @@마커 데이터 로드&추가
   // 마커 데이터가 있으면 지도에 마커를 추가
@@ -54,16 +54,16 @@ document.addEventListener("DOMContentLoaded", function () {
         "</div>" +
         '<div class="info-row">' +
         "<p>별점:</p>" +
-        data.starGrade +
+        data.starGradeData +
         "</div>" +
         '<div class="info-row textarea-row">' +
         "<p>설명:</p>" +
         data.description +
         "</div>" +
-        '<button class="modifyBtn" onclick="editContent(\'' +
+        '<button class="infoBtn modifyBtn" onclick="editContent(\'' +
         markerId +
         "')\">수정</button>" +
-        '<button class="deleteBtn" onclick="deleteContent(\'' +
+        '<button class="infoBtn deleteBtn" onclick="deleteContent(\'' +
         markerId +
         "')\">삭제</button>" +
         "</div>";
@@ -145,71 +145,75 @@ document.addEventListener("DOMContentLoaded", function () {
     markers.push({ id: markerId, marker: marker });
     lastMarker = marker;
 
-    var iwContent =
-      '<div class="info-content">' +
-      '<div class="info-row">' +
-      "<label>카페명:</label>" +
-      '<input id="name" type="text" style="width:200px;">' +
-      "</div>" +
-      '<div class="info-row">' +
-      "<label>메뉴:</label>" +
-      '<input id="snack" type="text" style="width:200px;">' +
-      "</div>" +
-      '<div class="info-row">' +
-      "<label>가격:</label>" +
-      '<input id="price" type="text" style="width:200px;">' +
-      "</div>" +
-      '<div class="info-row">' +
-      "<label>별점:</label>" +
-      '<div class="rating_box">' +
-      '<input id="price" type="text" style="width:200px;">' +
-      "</div>" +
-      '<div class="info-row textarea-row">' +
-      "<label>설명:</label>" +
-      '<textarea id="description" style="width:200px;height:50px;"></textarea>' +
-      "</div>" +
-      '<button class="saveBtn" onclick="saveContent(\'' +
-      markerId +
-      "')\">저장</button>" +
-      "</div>";
-      
+    var iwContent = `<div class="info-content"> 
+      <div class="info-row"> 
+      <label>카페명:</label>
+      <input id="name" type="text" style="width:200px;">
+      </div>
+      <div class="info-row">
+      <label>메뉴:</label>
+      <input id="snack" type="text" style="width:200px;">
+      </div>
+      <div class="info-row"> 
+      <label>가격:</label>
+      <input id="price" type="text" style="width:200px;">
+      </div>
+      <div class="info-row">
+      <label>별점:</label>
+        <div class="info-row">
+          <div class="star-rating">
+            <button class="star star1">☆</button>
+            <button class="star star2">☆</button>
+            <button class="star star3">☆</button>
+            <button class="star star4">☆</button>
+            <button class="star star5">☆</button>
+          </div>
+        </div>
+      </div>
+      <div class="info-row textarea-row">
+      <label>설명:</label>
+      <textarea id="description" style="width:200px;height:50px;"></textarea>
+      </div>
+      <button class="infoBtn saveBtn" onclick="saveContent('${markerId}')">저장</button>
+      </div>`;
+
     infowindow.setContent(iwContent);
     infowindow.open(map, marker);
 
+    const stars = document.querySelectorAll(".star");
+    stars.forEach((star, index) => {
+      star.addEventListener("click", () => handleStarClick(index));
+    });
+
     // @@생성된 마커 클릭 시
     kakao.maps.event.addListener(marker, "click", function clickMarker() {
-      map.panTo(marker.getPosition());
+      // map.panTo(marker.getPosition());
       var content = markerData[markerId];
       if (content) {
-        var iwContent =
-          '<div class="info-content">' +
-          '<div class="info-row">' +
-          "<p>카페명:</p>" +
-          content.name +
-          "</div>" +
-          '<div class="info-row">' +
-          "<p>메뉴:</p>" +
-          content.snack +
-          "</div>" +
-          '<div class="info-row">' +
-          "<p>가격:</p>" +
-          content.price +
-          "</div>" +
-          '<div class="info-row">' +
-          "<p>별점:</p>" +
-          content.starGrade +
-          "</div>" +
-          '<div class="info-row textarea-row">' +
-          "<p>설명:</p>" +
-          content.description +
-          "</div>" +
-          '<button class="modifyBtn" onclick="editContent(\'' +
-          markerId +
-          "')\">수정</button>" +
-          '<button class="deleteBtn" onclick="deleteContent(\'' +
-          markerId +
-          "')\">삭제</button>" +
-          "</div>";
+        var iwContent = `<div class="info-content">
+          <div class="info-row">
+          <p>카페명:</p>
+          ${content.name}
+          </div> 
+          <div class="info-row">
+          <p>메뉴:</p>
+          ${content.snack}
+          </div>
+          <div class="info-row">
+          <p>가격:</p>
+          ${content.price}
+          </div>
+          <div class="info-row">
+          <p>별점:</p>
+          ${content.starGradeData}
+          </div>
+          <div class="info-row textarea-row">
+          <p>설명:</p>
+          ${content.description}
+          </div>
+          <button class="infoBtn modifyBtn" onclick="editContent('${markerId}')">수정</button>" +
+          <button class="infoBtn deleteBtn" onclick="deleteContent('${markerId}')">삭제</button>
+          </div>`;
         infowindow.setContent(iwContent);
         infowindow.open(map, marker);
       } else {
@@ -223,8 +227,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // @@마커정보 저장&수정
-  // 저장 버튼 클릭 시 인포윈도우 내용을 저장하는 함수
+  // @@마커정보 저장&업데이트
   window.saveContent = function (markerId) {
     var name = document.getElementById("name")?.value;
     var snack = document.getElementById("snack")?.value;
@@ -249,7 +252,7 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    var data = { name, snack, price, starGrade, description, lat, lng };
+    var data = { name, snack, price, starGradeData, description, lat, lng };
     markerData[markerId] = data;
     localStorage.setItem("markerData", JSON.stringify(markerData)); // 로컬 스토리지에 저장
 
@@ -272,16 +275,16 @@ document.addEventListener("DOMContentLoaded", function () {
       "</div>" +
       '<div class="info-row">' +
       "<p>별점:</p>" +
-      data.starGrade +
+      data.starGradeData +
       "</div>" +
       '<div class="info-row textarea-row">' +
       "<p>설명:</p>" +
       data.description +
       "</div>" +
-      '<button class="modifyBtn" onclick="editContent(\'' +
+      '<button class="infoBtn modifyBtn" onclick="editContent(\'' +
       markerId +
       "')\">수정</button>" +
-      '<button class="deleteBtn" onclick="deleteContent(\'' +
+      '<button class="infoBtn deleteBtn" onclick="deleteContent(\'' +
       markerId +
       "')\">삭제</button>" +
       "</div>";
@@ -291,52 +294,54 @@ document.addEventListener("DOMContentLoaded", function () {
       map,
       markers.find((marker) => marker.id === markerId).marker
     );
-
     lastMarker = null;
+    
     //새로고침(이대로 써도 될까....????)
     location.href = location.href;
+    return data;
   };
 
-  // 수정 버튼 클릭 시 textarea로 전환
+  // @@수정
   window.editContent = function (markerId) {
     var content = markerData[markerId];
-    var iwContent =
-      '<div class="info-content">' +
-      '<div class="info-row">' +
-      "<label>카페명:</label>" +
-      '<input id="name" type="text" style="width:200px;" value="' +
-      content.name +
-      '">' +
-      "</div>" +
-      '<div class="info-row">' +
-      "<label>메뉴:</label>" +
-      '<input id="snack" type="text" style="width:200px;" value="' +
-      content.snack +
-      '">' +
-      "</div>" +
-      '<div class="info-row">' +
-      "<label>가격:</label>" +
-      '<input id="price" type="text" style="width:200px;" value="' +
-      content.price +
-      '">' +
-      "</div>" +
-      '<div class="info-row">' +
-      "<label>별점:</label>" +
-      '<input id="starGrade" type="text" style="width:200px;" value="' +
-      content.starGrade +
-      '">' +
-      "</div>" +
-      '<div class="info-row textarea-row">' +
-      "<label>설명:</label>" +
-      '<textarea id="description" style="width:200px;height:50px;">' +
-      content.description +
-      "</textarea>" +
-      "</div>" +
-      '<button class="saveBtn" onclick="saveContent(\'' +
-      markerId +
-      "')\">저장</button>" +
-      "</div>";
+    console.log(content);
+    var iwContent = 
+    `<div class="info-content">
+      <div class="info-row"> 
+      <label>카페명:</label>
+      <input id="name" type="text" style="width:200px;" value="${content.name}"> 
+      </div>
+      <div class="info-row"> 
+      <label>메뉴:</label>
+      <input id="snack" type="text" style="width:200px;" value="${content.snack}"> 
+      </div> 
+      <div class="info-row"> 
+      <label>가격:</label>
+      <input id="price" type="text" style="width:200px;" value="${content.price}"> 
+      </div>
+      <div class="info-row"> 
+      <label>별점:</label>
+        <div class="info-row">
+          <div class="star-rating">
+            <button class="star star1">☆</button>
+            <button class="star star2">☆</button>
+            <button class="star star3">☆</button>
+            <button class="star star4">☆</button>
+            <button class="star star5">☆</button>
+          </div>
+        </div>
+      </div>
+      <div class="info-row textarea-row"> 
+      <label>설명:</label>
+      <textarea id="description" style="width:200px;height:50px;">${content.description}</textarea>
+      </div>
+      <button class="infoBtn saveBtn" onclick="saveContent(${markerId})">저장</button>
+      </div>`;
     infowindow.setContent(iwContent);
+    const stars = document.querySelectorAll(".star");
+    stars.forEach((star, index) => {
+      star.addEventListener("click", () => handleStarClick(index));
+    });
     infowindow.open(
       map,
       markers.find((marker) => marker.id === markerId).marker
@@ -362,6 +367,26 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   };
 
+  // @@ 별점 처리
+  function handleStarClick(starIndex) {
+    var stars = document.querySelectorAll(".star");
+    for (let i = 0; i < stars.length; i++) {
+      if (i <= starIndex) {
+        stars[i].innerHTML = "★";
+      } else {
+        stars[i].innerHTML = "☆";
+      }
+    }
+    starGradeData = [starIndex + 1];
+    console.log(starGradeData);
+    return starGradeData;
+  }
+
+  function showStarGrade() {
+    if (markerData[markerId].starGradeData == "5") {
+    }
+  }
+
   // @@메뉴바 기능
   var menuBarImg = document.querySelector(".menuBarImg");
   var menuBarContainer = document.querySelector(".menuBarContainer");
@@ -379,7 +404,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // 메뉴바 클릭 이벤트
   document.querySelector(".menuBarImg").addEventListener("click", toggleMenu);
 
-  // 검색 메모 버튼 클릭 이벤트
+  // 메뉴바 p태그 클릭 이벤트
   document
     .querySelector(".p-searchMemo")
     .addEventListener("click", openSearchPage);
@@ -395,7 +420,7 @@ document.addEventListener("DOMContentLoaded", function () {
     location.href = location.href;
   });
 
-  // 검색 메모 팝업 함수
+  // @@ 검색 메모 메뉴 함수
   function openSearchPage() {
     let mapEl = document.querySelector(".mapEl");
     mapContainer2.style.display = "block";
@@ -418,18 +443,17 @@ document.addEventListener("DOMContentLoaded", function () {
       cafeCell.innerHTML = data.name;
       snackCell.innerHTML = data.snack;
       priceCell.innerHTML = data.price;
-      scoreCell.innerHTML = data.starGrade;
+      scoreCell.innerHTML = data.starGradeData;
       descriptionCell.innerHTML = data.description;
 
       document
         .querySelector("#memoSearchBtn")
         .addEventListener("click", memoSearching);
-
       return { cafeCell, snackCell, priceCell, scoreCell, descriptionCell };
     });
   }
 
-  // 사용가이드 팝업 함수
+  // @@사용가이드 팝업 함수
   function openUserGuidePage() {
     let mapEl = document.querySelector(".mapEl");
     mapContainer3.style.display = "block";
@@ -447,7 +471,6 @@ document.addEventListener("DOMContentLoaded", function () {
       (item) =>
         item.name.toLowerCase().includes(keyword) ||
         item.snack.toLowerCase().includes(keyword) ||
-        item.starGrade.toLowerCase().includes(keyword) ||
         item.description.toLowerCase().includes(keyword)
     );
 
@@ -462,19 +485,33 @@ document.addEventListener("DOMContentLoaded", function () {
       const scoreCell = newRow.insertCell(3);
       const descriptionCell = newRow.insertCell(4);
 
-      cafeCell.innerHTML = highlightKeyword(item.name, keyword);
-      snackCell.innerHTML = highlightKeyword(item.snack, keyword);
-      priceCell.innerHTML = highlightKeyword(item.price, keyword);
-      scoreCell.innerHTML = highlightKeyword(item.starGrade, keyword);
-      descriptionCell.innerHTML = highlightKeyword(item.description, keyword);
+      cafeCell.innerHTML = highlightKeyword(item.name || "", keyword);
+      snackCell.innerHTML = highlightKeyword(item.snack || "", keyword);
+      priceCell.innerHTML = highlightKeyword(item.price || "", keyword);
+      scoreCell.innerHTML = highlightKeyword(
+        Array.isArray(item.starGradeData)
+          ? item.starGradeData.join(", ")
+          : item.starGradeData || "",
+        keyword
+      );
+      descriptionCell.innerHTML = highlightKeyword(
+        item.description || "",
+        keyword
+      );
     });
+
+    //검색 해제
     document
       .querySelector("#memoSearchOffBtn")
-      .addEventListener("click", openSearchPage);
-    keyword.value = "";
+      .addEventListener("click", () => {
+        openSearchPage();
+      });
   }
 
   function highlightKeyword(text, keyword) {
+    if (typeof text !== "string") {
+      return text;
+    }
     const regex = new RegExp(`(${keyword})`, "gi");
     return text.replace(regex, '<span class="highlight">$1</span>');
   }
